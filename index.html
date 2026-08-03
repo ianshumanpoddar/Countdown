@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Countdown — 24 Jan 2027</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap');
+
+  :root{
+    --bg:#0b0f14;
+    --panel:#121821;
+    --line:#243040;
+    --text:#e7edf3;
+    --muted:#7c8ba1;
+    --accent:#5ee6c8;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;height:100%;
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Space Grotesk',sans-serif;
+    display:flex;align-items:center;justify-content:center;
+    overflow:hidden;
+  }
+  .wrap{
+    width:100%;max-width:640px;padding:32px;text-align:center;
+  }
+  .photo-ring{
+    width:150px;height:150px;
+    margin:0 auto 24px;
+    border-radius:50%;
+    padding:4px;
+    background:linear-gradient(135deg,var(--accent),transparent 60%,var(--accent));
+    animation:float 4.5s ease-in-out infinite, spin-glow 8s linear infinite;
+    box-shadow:0 0 30px rgba(94,230,200,.25);
+  }
+  .photo-ring img{
+    width:100%;height:100%;
+    object-fit:cover;
+    border-radius:50%;
+    border:3px solid var(--bg);
+    display:block;
+  }
+  @keyframes float{
+    0%,100%{ transform:translateY(0); }
+    50%{ transform:translateY(-10px); }
+  }
+  @keyframes spin-glow{
+    0%{ filter:hue-rotate(0deg); }
+    100%{ filter:hue-rotate(30deg); }
+  }
+  .fade-up{
+    opacity:0;
+    animation:fadeUp .9s ease forwards;
+  }
+  @keyframes fadeUp{
+    from{ opacity:0; transform:translateY(14px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+  .target{
+    color:var(--muted);
+    font-family:'JetBrains Mono',monospace;
+    font-size:13px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    margin-bottom:28px;
+  }
+  .target span{color:var(--accent);}
+  .note{
+    font-family:'JetBrains Mono',monospace;
+    font-size:13px;
+    color:var(--accent);
+    letter-spacing:0.04em;
+    margin:-16px 0 28px;
+    opacity:.9;
+  }
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:12px;
+  }
+  .cell{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:20px 6px 14px;
+    position:relative;
+    overflow:hidden;
+  }
+  .cell::before{
+    content:'';
+    position:absolute;top:0;left:0;right:0;height:1px;
+    background:linear-gradient(90deg,transparent,var(--accent),transparent);
+    opacity:.5;
+  }
+  .num{
+    font-family:'JetBrains Mono',monospace;
+    font-weight:600;
+    font-size:clamp(28px,7vw,44px);
+    line-height:1;
+    color:var(--text);
+    font-variant-numeric:tabular-nums;
+  }
+  .label{
+    margin-top:8px;
+    font-size:11px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--muted);
+  }
+  .done{
+    font-size:22px;color:var(--accent);
+    font-family:'JetBrains Mono',monospace;
+  }
+  @media (max-width:420px){
+    .grid{grid-template-columns:repeat(2,1fr);}
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="photo-ring fade-up" style="animation-delay:.1s">
+      <img src="photo.jpg" alt="Komal and Anshuman">
+    </div>
+    <div class="target fade-up" style="animation-delay:.3s">Counting down to <span>24 Jan 2027</span></div>
+    <div class="note fade-up" style="animation-delay:.45s">— the day Komal makes Anshuman hers —</div>
+    <div class="grid fade-up" id="grid" style="animation-delay:.6s">
+      <div class="cell"><div class="num" id="d">--</div><div class="label">Days</div></div>
+      <div class="cell"><div class="num" id="h">--</div><div class="label">Hours</div></div>
+      <div class="cell"><div class="num" id="m">--</div><div class="label">Minutes</div></div>
+      <div class="cell"><div class="num" id="s">--</div><div class="label">Seconds</div></div>
+    </div>
+  </div>
+
+<script>
+  const target = new Date("2027-01-24T00:00:00");
+
+  function pad(n){ return String(n).padStart(2,'0'); }
+
+  function tick(){
+    const now = new Date();
+    let diff = target - now;
+
+    if (diff <= 0){
+      document.getElementById('grid').innerHTML =
+        '<div class="done" style="grid-column:1/-1;">Target date reached 🎉</div>';
+      clearInterval(timer);
+      return;
+    }
+
+    const totalSeconds = Math.floor(diff/1000);
+    const days = Math.floor(totalSeconds / 86400);
+    const hours = Math.floor((totalSeconds % 86400) / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    document.getElementById('d').textContent = days;
+    document.getElementById('h').textContent = pad(hours);
+    document.getElementById('m').textContent = pad(minutes);
+    document.getElementById('s').textContent = pad(seconds);
+  }
+
+  tick();
+  const timer = setInterval(tick, 1000);
+</script>
+</body>
+</html>
