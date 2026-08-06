@@ -112,6 +112,19 @@
   @media (max-width:420px){
     .grid{grid-template-columns:repeat(2,1fr);}
   }
+  .music-btn{
+    position:fixed;
+    bottom:20px;right:20px;
+    z-index:3;
+    width:48px;height:48px;
+    border-radius:50%;
+    background:rgba(18,24,33,.85);
+    border:1px solid var(--line);
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+    font-size:20px;
+    backdrop-filter:blur(6px);
+  }
 </style>
 </head>
 <body>
@@ -119,7 +132,7 @@
   <div class="overlay"></div>
   <div class="wrap">
     <div class="target fade-up" style="animation-delay:.3s">Counting down to <span>24 Jan 2027</span></div>
-    <div class="note fade-up" style="animation-delay:.45s">Counting down to the day when Komal and Anshuman will circle the sacred fire, exchange eternal vows, and begin a journey of love, dharma, and togetherness—today, tomorrow, and for seven lifetimes.🔥💖</div>
+    <div class="note fade-up" style="animation-delay:.45s">— the day Komal makes Anshuman hers —</div>
     <div class="grid fade-up" id="grid" style="animation-delay:.6s">
       <div class="cell"><div class="num" id="d">--</div><div class="label">Days</div></div>
       <div class="cell"><div class="num" id="h">--</div><div class="label">Hours</div></div>
@@ -127,6 +140,9 @@
       <div class="cell"><div class="num" id="s">--</div><div class="label">Seconds</div></div>
     </div>
   </div>
+
+  <audio id="bgm" src="song.mp3" loop autoplay muted playsinline></audio>
+  <div class="music-btn" id="musicBtn" onclick="toggleMusic()">🔇</div>
 
 <script>
   const target = new Date("2027-01-24T00:00:00");
@@ -158,6 +174,17 @@
 
   tick();
   const timer = setInterval(tick, 1000);
+
+  const bgm = document.getElementById('bgm');
+  const musicBtn = document.getElementById('musicBtn');
+
+  function toggleMusic(){
+    bgm.muted = !bgm.muted;
+    musicBtn.textContent = bgm.muted ? '🔇' : '🔊';
+    if (!bgm.muted){
+      bgm.play().catch(()=>{});
+    }
+  }
 </script>
 </body>
 </html>
