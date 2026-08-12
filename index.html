@@ -133,8 +133,8 @@
     display:flex;
     align-items:flex-end;
     justify-content:space-between;
-    gap:0;
-    padding:0;
+    gap:3px;
+    padding:0 4px;
     pointer-events:none;
   }
   .eq span{
@@ -200,11 +200,17 @@
 
   const bgm = document.getElementById('bgm');
   const musicBtn = document.getElementById('musicBtn');
+  let isMuted = true;
 
   function toggleMusic(){
-    bgm.muted = !bgm.muted;
-    musicBtn.textContent = bgm.muted ? '🔇' : '🔊';
-    if (!bgm.muted){
+    isMuted = !isMuted;
+    musicBtn.textContent = isMuted ? '🔇' : '🔊';
+    if (gainNode){
+      gainNode.gain.value = isMuted ? 0 : 1;
+    } else {
+      bgm.muted = isMuted;
+    }
+    if (!isMuted){
       bgm.play().catch(()=>{});
     }
   }
@@ -262,15 +268,16 @@
 
   // Audio-reactive equalizer
   const eqContainer = document.getElementById('eq');
-  const BAR_COUNT = 48;
+  const BAR_COUNT = 24;
   const bars = [];
   for (let i = 0; i < BAR_COUNT; i++){
     const b = document.createElement('span');
+    b.style.background = `hsl(${(i / BAR_COUNT) * 300}, 85%, 60%)`;
     eqContainer.appendChild(b);
     bars.push(b);
   }
 
-  let audioCtx, analyser, dataArray, sourceConnected = false;
+  let audioCtx, analyser, gainNode, dataArray, sourceConnected = false;
 
   function setupAudioAnalyser(){
     if (sourceConnected) return;
@@ -279,8 +286,14 @@
       const source = audioCtx.createMediaElementSource(bgm);
       analyser = audioCtx.createAnalyser();
       analyser.fftSize = 128;
+      gainNode = audioCtx.createGain();
+      gainNode.gain.value = isMuted ? 0 : 1;
+
       source.connect(analyser);
-      analyser.connect(audioCtx.destination);
+      analyser.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+
+      bgm.muted = false; // volume now fully controlled by gainNode
       dataArray = new Uint8Array(analyser.frequencyBinCount);
       sourceConnected = true;
       drawEq();
@@ -293,7 +306,7 @@
     analyser.getByteFrequencyData(dataArray);
     for (let i = 0; i < BAR_COUNT; i++){
       const val = dataArray[i % dataArray.length];
-      const height = bgm.muted ? 3 : Math.max(3, (val / 255) * 60);
+      const height = isMuted ? 3 : Math.max(3, (val / 255) * 60);
       bars[i].style.height = height + 'px';
     }
   }
