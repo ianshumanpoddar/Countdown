@@ -140,9 +140,55 @@
   .eq span{
     flex:1 1 auto;
     min-height:3px;
+    background:linear-gradient(180deg,var(--accent),#2c8f7c);
     border-radius:2px 2px 0 0;
     transition:height .05s linear;
     opacity:.9;
+  }
+  .vol-slider{
+    position:fixed;
+    right:24px;
+    bottom:240px;
+    z-index:3;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:8px;
+    background:rgba(18,24,33,.85);
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:14px 8px;
+    backdrop-filter:blur(6px);
+  }
+  .vol-slider input[type="range"]{
+    -webkit-appearance:none;
+    appearance:none;
+    width:120px;
+    height:4px;
+    background:var(--line);
+    border-radius:2px;
+    transform:rotate(-90deg);
+    margin:50px -30px;
+    outline:none;
+  }
+  .vol-slider input[type="range"]::-webkit-slider-thumb{
+    -webkit-appearance:none;
+    width:18px;height:18px;
+    border-radius:50%;
+    background:var(--accent);
+    cursor:pointer;
+    box-shadow:0 0 6px rgba(94,230,200,.6);
+  }
+  .vol-slider input[type="range"]::-moz-range-thumb{
+    width:18px;height:18px;
+    border-radius:50%;
+    background:var(--accent);
+    border:none;
+    cursor:pointer;
+  }
+  .vol-icon{
+    font-size:16px;
+    color:var(--muted);
   }
 </style>
 </head>
@@ -166,6 +212,11 @@
 
   <audio id="bgm" src="song.mp3" loop autoplay muted playsinline></audio>
   <div class="music-btn" id="musicBtn" onclick="toggleMusic()">🔇</div>
+  <div class="vol-slider">
+    <span class="vol-icon">🔊</span>
+    <input type="range" id="volSlider" min="0" max="100" value="70">
+    <span class="vol-icon">🔈</span>
+  </div>
 
 <script>
   const target = new Date("2027-01-24T00:00:00");
@@ -200,20 +251,42 @@
 
   const bgm = document.getElementById('bgm');
   const musicBtn = document.getElementById('musicBtn');
+  const volSlider = document.getElementById('volSlider');
   let isMuted = true;
+  let currentVolume = 0.7;
+
+  // Try to start the song silently in the background right away
+  bgm.volume = currentVolume;
+  bgm.play().catch(()=>{ /* browser may block until first interaction */ });
 
   function toggleMusic(){
     isMuted = !isMuted;
     musicBtn.textContent = isMuted ? '🔇' : '🔊';
-    if (gainNode){
-      gainNode.gain.value = isMuted ? 0 : 1;
-    } else {
-      bgm.muted = isMuted;
-    }
+    applyVolume();
     if (!isMuted){
       bgm.play().catch(()=>{});
     }
   }
+
+  function applyVolume(){
+    const level = isMuted ? 0 : currentVolume;
+    if (gainNode){
+      gainNode.gain.value = level;
+    } else {
+      bgm.volume = level;
+      bgm.muted = isMuted;
+    }
+  }
+
+  volSlider.addEventListener('input', () => {
+    currentVolume = volSlider.value / 100;
+    if (currentVolume > 0 && isMuted){
+      isMuted = false;
+      musicBtn.textContent = '🔊';
+      bgm.play().catch(()=>{});
+    }
+    applyVolume();
+  });
 
   // Firecracker burst on tap/click
   const fx = document.getElementById('fx');
@@ -272,7 +345,6 @@
   const bars = [];
   for (let i = 0; i < BAR_COUNT; i++){
     const b = document.createElement('span');
-    b.style.background = `hsl(${(i / BAR_COUNT) * 300}, 85%, 60%)`;
     eqContainer.appendChild(b);
     bars.push(b);
   }
@@ -287,7 +359,7 @@
       analyser = audioCtx.createAnalyser();
       analyser.fftSize = 128;
       gainNode = audioCtx.createGain();
-      gainNode.gain.value = isMuted ? 0 : 1;
+      gainNode.gain.value = isMuted ? 0 : currentVolume;
 
       source.connect(analyser);
       analyser.connect(gainNode);
@@ -296,6 +368,8 @@
       bgm.muted = false; // volume now fully controlled by gainNode
       dataArray = new Uint8Array(analyser.frequencyBinCount);
       sourceConnected = true;
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      bgm.play().catch(()=>{});
       drawEq();
     } catch(e){ /* Web Audio not available, bars stay idle */ }
   }
