@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>Countdown — 24 Jan 2027</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap');
@@ -28,6 +29,7 @@
     inset:0;
     width:100%;height:100%;
     object-fit:cover;
+    object-position:center 15%;
     z-index:0;
     animation:zoomSlow 20s ease-in-out infinite alternate;
   }
@@ -291,9 +293,16 @@
   // Firecracker burst on tap/click
   const fx = document.getElementById('fx');
   const ctx = fx.getContext('2d');
-  function resizeFx(){ fx.width = window.innerWidth; fx.height = window.innerHeight; }
+  function resizeFx(){
+    fx.width = window.innerWidth;
+    fx.height = window.innerHeight;
+  }
   resizeFx();
   window.addEventListener('resize', resizeFx);
+  window.addEventListener('orientationchange', resizeFx);
+  if (window.visualViewport){
+    window.visualViewport.addEventListener('resize', resizeFx);
+  }
 
   let particles = [];
   const colors = ['#5ee6c8','#ffd166','#ff6b6b','#ffffff','#f4a261','#e63946'];
