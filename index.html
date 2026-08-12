@@ -268,12 +268,16 @@
   bgm.play().catch(()=>{ /* browser may block until first interaction */ });
 
   function toggleMusic(){
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    setupAudioAnalyser();
+
     isMuted = !isMuted;
     musicBtn.textContent = isMuted ? '🔇' : '🔊';
     applyVolume();
     if (!isMuted){
       bgm.play().catch(()=>{});
     }
+    showVolSlider();
   }
 
   function applyVolume(){
