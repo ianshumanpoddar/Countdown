@@ -125,6 +125,26 @@
     font-size:90px;
     backdrop-filter:blur(6px);
   }
+  .eq{
+    position:fixed;
+    left:0;right:0;bottom:0;
+    height:70px;
+    z-index:2;
+    display:flex;
+    align-items:flex-end;
+    justify-content:center;
+    gap:3px;
+    padding:0 10px;
+    pointer-events:none;
+  }
+  .eq span{
+    width:4px;
+    min-height:3px;
+    background:linear-gradient(180deg,var(--accent),#2c8f7c);
+    border-radius:2px 2px 0 0;
+    transition:height .05s linear;
+    opacity:.85;
+  }
 </style>
 </head>
 <body>
@@ -140,6 +160,8 @@
       <div class="cell"><div class="num" id="s">--</div><div class="label">Seconds</div></div>
     </div>
   </div>
+
+  <div class="eq" id="eq"></div>
 
   <canvas id="fx" style="position:fixed;inset:0;z-index:5;pointer-events:none;"></canvas>
 
@@ -238,6 +260,50 @@
   }
   document.addEventListener('click', handleTap);
   document.addEventListener('touchstart', handleTap, {passive:true});
+
+  // Audio-reactive equalizer
+  const eqContainer = document.getElementById('eq');
+  const BAR_COUNT = 48;
+  const bars = [];
+  for (let i = 0; i < BAR_COUNT; i++){
+    const b = document.createElement('span');
+    eqContainer.appendChild(b);
+    bars.push(b);
+  }
+
+  let audioCtx, analyser, dataArray, sourceConnected = false;
+
+  function setupAudioAnalyser(){
+    if (sourceConnected) return;
+    try{
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const source = audioCtx.createMediaElementSource(bgm);
+      analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 128;
+      source.connect(analyser);
+      analyser.connect(audioCtx.destination);
+      dataArray = new Uint8Array(analyser.frequencyBinCount);
+      sourceConnected = true;
+      drawEq();
+    } catch(e){ /* Web Audio not available, bars stay idle */ }
+  }
+
+  function drawEq(){
+    requestAnimationFrame(drawEq);
+    if (!analyser) return;
+    analyser.getByteFrequencyData(dataArray);
+    for (let i = 0; i < BAR_COUNT; i++){
+      const val = dataArray[i % dataArray.length];
+      const height = bgm.muted ? 3 : Math.max(3, (val / 255) * 60);
+      bars[i].style.height = height + 'px';
+    }
+  }
+
+  // Audio analysis needs a user gesture to start on iOS
+  document.addEventListener('click', function initAudio(){
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    setupAudioAnalyser();
+  }, {once:false});
 </script>
 </body>
 </html>
