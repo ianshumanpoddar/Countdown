@@ -264,7 +264,7 @@
     const leftoverDays = Math.round((target - dayMarker) / 86400000);
 
     document.getElementById('d').textContent = days;
-    document.getElementById('moSub').textContent = '(' + months + ' Months, ' + leftoverDays + ' Days)';
+    document.getElementById('moSub').textContent = '(' + months + 'M & ' + leftoverDays + 'D)';
     document.getElementById('h').textContent = pad(hours);
     document.getElementById('m').textContent = pad(minutes);
     document.getElementById('s').textContent = pad(seconds);
